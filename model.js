@@ -4,7 +4,10 @@ const { promisify } = require('util');
 
 const DB_FILE_NAME = './books.json';
 
-// Caller must implement .catch()
+// loadDb()
+// Load the database
+// @return -- [ {book}, ... ]
+// .catch(error) -- file not found or can't be read
 function loadDb() {
   return promisify(fs.readFile)(DB_FILE_NAME, 'utf8')
     .then(buffer => JSON.parse(buffer));
@@ -20,14 +23,19 @@ function loadDb() {
 //     console.log("XXXX error: ", error);
 //   });
 
-// caller must implement catch
+// bookInsert()
+// @param sTitle -- new book title
+// @param sDesc -- new book desc
+// @return oNewBook -- new book that was added
+// .catch(error) -- from loadDb() or
+//                  Error("book already exists")
 function bookInsert(sTitle, sDesc) {
   return loadDb()
     .then((aBooks) => {
       console.log(typeof aBooks);
       if (aBooks.find(oBook => oBook.title.toLowerCase() === sTitle.toLowerCase())) {
         console.log("** book exists");
-        throw new Error("BOOK EXISTS");
+        throw new Error("book already exists");
       }
       const oNewBook = {};
       oNewBook.id = uuidv4();
@@ -37,7 +45,7 @@ function bookInsert(sTitle, sDesc) {
       oNewBook.authors = [];
       aBooks.push(oNewBook);
       return oNewBook;
-    })
+    });
 }
 
 bookInsert('Bible', 'The definitive guide to life.')
