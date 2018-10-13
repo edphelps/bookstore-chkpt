@@ -29,5 +29,12 @@
         "last": "Schwartz"
       }
     ]
+  },
+  {
+    "id": "7e63a2f5-107e-4fd6-95ee-0ca4a6b0c1c4",
+    "title": "Bible",
+    "borrowed": false,
+    "desc": "The definitive guide to life.",
+    "authors": []
   }
 ]

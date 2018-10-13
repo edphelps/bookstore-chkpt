@@ -6,8 +6,8 @@ const DB_FILE_NAME = './books.json';
 
 /* **************************************************
 *  loadDb()
-*  Load the database
-*  @return [ {book}, ... ]
+*  Load database
+*  @return Promise: [ {book}, ... ]
 *  .catch(error) -- file not found or can't be read
 ***************************************************** */
 function loadDb() {
@@ -17,56 +17,86 @@ function loadDb() {
 
 /* **************************************************
 *  saveDb()
-*  Save the database
-*  @return [ {book}, ... ]
+*  Save database
+*  @return Promise: [ {book}, ... ]
 *  .catch(error) file not found or can't be read
 ***************************************************** */
 function saveDb(aBooks) {
-  //  return promisify(fs.writeFile)(DB_FILE_NAME, aBooks, 'utf8')
-  return promisify(fs.writeFile)(DB_FILE_NAME, JSON.stringify(aBooks, null, 2), 'utf8')
+  return promisify(fs.writeFile)(DB_FILE_NAME, JSON.stringify(aBooks, null, 2), 'utf8');
 }
 
 /* **************************************************
-*  bookInsert()
-*  @param sTitle new book title
-*  @param sDesc new book desc
-*  @return oNewBook new book that was added
+*  bookCreate()
+*  @param sTitle, new book title
+*  @param sDesc, new book desc
+*  @return Promise: oNewBook, book that was added including its assigned id
 *  .catch(error) from loadDb() or
 *                Error("book already exists")
 ***************************************************** */
-function bookInsert(sTitle, sDesc) {
+function bookCreate(sTitle, sDesc) {
+  let aBooks = [];
+  let oNewBook = {};
   return loadDb()
-    .then((aBooks) => {
-      console.log(typeof aBooks);
+    .then((_aBooks) => {
+      aBooks = _aBooks;
       if (aBooks.find(oBook => oBook.title.toLowerCase() === sTitle.toLowerCase())) {
-        console.log("** book exists");
+        console.log("internal error: book exists");
         throw new Error("book already exists");
       }
-      const oNewBook = {};
+      oNewBook = {};
       oNewBook.id = uuidv4();
       oNewBook.title = sTitle;
       oNewBook.borrowed = false;
       oNewBook.desc = sDesc;
       oNewBook.authors = [];
       aBooks.push(oNewBook);
-      return oNewBook;
-    });
+    })
+    .then(() => saveDb(aBooks))
+    .then(() => oNewBook);
 }
 
-bookInsert('Bible', 'The definitive guide to life.')
-  .then((oBook) => {
-    console.log("added book: ", oBook);
-  })
-  .catch((error) => {
-    console.log("XXX failed to insert book: ", error);
-  });
+/* **************************************************
+*  bookRead()
+*  @param sId, book id
+*  @param sDesc new book desc
+*  @return oNewBook, book that was added with uuid
+*  .catch(error) from loadDb() or
+*                Error("book already exists")
+***************************************************** */
+function bookCreate(sId) {
+  let aBooks = [];
+  let oNewBook = {};
+  return loadDb()
+    .then((_aBooks) => {
+      aBooks = _aBooks;
+      if (aBooks.find(oBook => oBook.title.toLowerCase() === sTitle.toLowerCase())) {
+        console.log("internal error: book exists");
+        throw new Error("book already exists");
+      }
+      oNewBook = {};
+      oNewBook.id = uuidv4();
+      oNewBook.title = sTitle;
+      oNewBook.borrowed = false;
+      oNewBook.desc = sDesc;
+      oNewBook.authors = [];
+      aBooks.push(oNewBook);
+    })
+    .then(() => saveDb(aBooks))
+    .then(() => oNewBook);
+}
 
-bookInsert('Bible', 'The definitive guide to life.')
+
+
+bookCreate('Bible', 'The definitive guide to life.')
   .then((oBook) => {
     console.log("added book: ", oBook);
   })
+  .then(() => bookCreate('Bible', 'The definitive guide to life.'))
+  .then((oBook) => {
+    console.log("added another book: ", oBook);
+  })
   .catch((error) => {
-    console.log("XXX failed to insert book: ", error);
+    console.log("catch(): failed to insert book: ", error);
   });
 
 // loadDb()
