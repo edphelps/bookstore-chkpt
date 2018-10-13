@@ -4,31 +4,36 @@ const { promisify } = require('util');
 
 const DB_FILE_NAME = './books.json';
 
-// loadDb()
-// Load the database
-// @return -- [ {book}, ... ]
-// .catch(error) -- file not found or can't be read
+/* **************************************************
+*  loadDb()
+*  Load the database
+*  @return [ {book}, ... ]
+*  .catch(error) -- file not found or can't be read
+***************************************************** */
 function loadDb() {
   return promisify(fs.readFile)(DB_FILE_NAME, 'utf8')
     .then(buffer => JSON.parse(buffer));
 }
 
-// loadDb()
-//   .then((arr) => {
-//     console.log(typeof arr);
-//     console.log(arr instanceof Array);
-//     console.log("arr: ", arr);
-//   })
-//   .catch((error) => {
-//     console.log("XXXX error: ", error);
-//   });
+/* **************************************************
+*  saveDb()
+*  Save the database
+*  @return [ {book}, ... ]
+*  .catch(error) file not found or can't be read
+***************************************************** */
+function saveDb(aBooks) {
+  //  return promisify(fs.writeFile)(DB_FILE_NAME, aBooks, 'utf8')
+  return promisify(fs.writeFile)(DB_FILE_NAME, JSON.stringify(aBooks, null, 2), 'utf8')
+}
 
-// bookInsert()
-// @param sTitle -- new book title
-// @param sDesc -- new book desc
-// @return oNewBook -- new book that was added
-// .catch(error) -- from loadDb() or
-//                  Error("book already exists")
+/* **************************************************
+*  bookInsert()
+*  @param sTitle new book title
+*  @param sDesc new book desc
+*  @return oNewBook new book that was added
+*  .catch(error) from loadDb() or
+*                Error("book already exists")
+***************************************************** */
 function bookInsert(sTitle, sDesc) {
   return loadDb()
     .then((aBooks) => {
@@ -63,3 +68,8 @@ bookInsert('Bible', 'The definitive guide to life.')
   .catch((error) => {
     console.log("XXX failed to insert book: ", error);
   });
+
+// loadDb()
+//   .then((aBooks) => {
+//     saveDb(aBooks);
+//   })
