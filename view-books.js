@@ -1,49 +1,25 @@
 const express = require('express');
 const router = express.Router();
 const model = require('./model.js');
-
-
-// /* **************************************************
-// *  formatError()
-// *  @param Error, actual Error object
-// *  @return, string with the stack string split from message.
-// *           Or entire stack string if ' at ' not found.
-// ***************************************************** */
-// function formatError(error) {
-//   const i = error.stack.search(' at ');
-//   if (i === -1)
-//     return error.stack;
-//   const stack = error.stack.slice(i + 4);
-//   return `${error.message} [${stack}]`
-// }
-//
-// /* **************************************************
-// *  restructureError()
-// *  @param Error -- actual Error object
-// *  Returns object { message: 'xxxx', stack: 'xxx' }
-// ***************************************************** */
-// function restructureError(error) {
-//   const i = error.stack.search(' at ');
-//   if (i === -1)
-//     return { message: error.message, stack: 'undetermines' };
-//   return { error: { message: error.message, stack: error.stack.slice(i + 4) } };
-// }
+const chkBodyParams = require('./params').chkBodyParams;
 
 /* **************************************************
 *  POST /books
+*  Add a new book
 *  @body title
 *  @body desc
-*  Add a new book or error
+*  @return the new book record with id or forwards w/ next(Error)
 http POST localhost:3000/books title='Bible' desc='The only book you need!'
 ***************************************************** */
 router.post('', (req, res, next) => {
-  const { title, desc } = req.body;
-  if (!title || !desc) {
-    res.status(400).json({ error: { message: 'must pass title and desc' } });
+  const oParams = {
+    title: 'string',
+    desc: 'string',
+  };
+  if (!chkBodyParams(oParams, req, res, next))
     return;
-  }
 
-  model.createBook(title, desc)
+  model.createBook(req.body.title, req.body.desc)
     .then((newBook) => {
       res.status(201).json(newBook);
     })
@@ -88,6 +64,7 @@ router.get('/:id', (req, res, next) => {
 /* **************************************************
 *  PUT /books/:id
 *  Update the book
+*    Note: authors must be updated individually through \books\:id\authors api
 *  @body title
 *  @body borrowed
 *  @body desc
@@ -95,17 +72,20 @@ router.get('/:id', (req, res, next) => {
 http PUT localhost:3000/books/123... title='new title' borrowed=true desc='new desc'
 ***************************************************** */
 router.put('/:id', (req, res, next) => {
-  const { title, borrowed, desc } = req.body;
-  if (!title || !desc || typeof borrowed === 'undefined') {
-    res.status(400).json({ error: { message: 'must pass title, borrowed, and desc' } });
+  const oParams = {
+    title: 'string',
+    borrowed: 'bool',
+    desc: 'string',
+  };
+  if (!chkBodyParams(oParams, req, res, next))
     return;
-  }
+
   const oBook = {
     id: req.params.id,
-    title,
-    borrowed,
-    desc,
-    // authors must be updated individually through \books\:id\authors api
+    title: req.body.title,
+    borrowed: req.body.borrowed,
+    desc: req.body.desc,
+
   };
   model.updateBook(oBook)
     .then((updatedBook) => {
@@ -132,24 +112,6 @@ router.delete('/:id', (req, res, next) => {
       error.status = 404;
       next(error);
     });
-});
-
-// ===========================================================
-// GET /series/:id/characters
-// Get all characters for a series
-// ===========================================================
-router.get('/:id/characters', (req, res, next) => {
-  console.log("~~ GET /series/:id/characters");
-
-  // find the series
-  const series = db.series.find(testSeries => testSeries.id === req.params.id);
-  if (!series) {
-    res.status(404).json({ error: { message: 'unk series' } });
-    return;
-  }
-
-  // return array of characters in the series
-  res.json(db.characters.filter(character => character.series_id === series.id));
 });
 
 module.exports = router;

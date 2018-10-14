@@ -31,9 +31,13 @@ app.use((req, res, next) => {
 *  Returns object { message: 'xxxx', stack: 'xxx' }
 ***************************************************** */
 function restructureError(error) {
+  if (!error.stack)
+    return error;
+
   const i = error.stack.search(' at ');
   if (i === -1)
     return { message: error.message, stack: 'undetermined', status: error.status };
+    
   const restructured = {
     error: {
       message: error.message,
