@@ -51,7 +51,7 @@ function createBook(sTitle, sDesc) {
       oNewBook.borrowed = false;
       oNewBook.desc = sDesc;
       oNewBook.authors = [];
-      aBooks.push(oNewBook);
+      aBooks.unshift(oNewBook);
     })
     .then(() => saveDb(aBooks))
     .then(() => oNewBook);
@@ -75,7 +75,6 @@ function readBook(sId) {
       // read specific book
       const oFndBook = aBooks.find(oBook => oBook.id === sId);
       if (!oFndBook) {
-        console.log("internal error: book not found");
         throw new Error(`book not found: ${sId}`);
       }
       return oFndBook;
@@ -144,7 +143,7 @@ function deleteBook(sId) {
 
 
 /* **************************************************
-*  createAuthor()
+*  createBookAuthor()
 *  @param sBookID
 *  @param sFirst
 *  @param sLast
@@ -153,7 +152,7 @@ function deleteBook(sId) {
 *                Error("book not found")
 *                Error("author already exists")
 ***************************************************** */
-function createAuthor(sBookId, sFirst, sLast) {
+function createBookAuthor(sBookId, sFirst, sLast) {
   const oNewAuthor = {};
   return loadDb()
     .then((aBooks) => {
@@ -173,7 +172,7 @@ function createAuthor(sBookId, sFirst, sLast) {
 }
 
 /* **************************************************
-*  readAuthor()
+*  readBookAuthor()
 *  @param sBookId
 *  @param [sAuthorId], if not provided return all authors
 *  @return Promise: oAuthor
@@ -181,7 +180,7 @@ function createAuthor(sBookId, sFirst, sLast) {
 *                Error("book not found")
 *                Error("author not found")
 ***************************************************** */
-function readAuthor(sBookId, sAuthorId) {
+function readBookAuthor(sBookId, sAuthorId) {
   return loadDb()
     .then((aBooks) => {
       const oFndBook = aBooks.find(oBook => oBook.id === sBookId);
@@ -205,7 +204,7 @@ function readAuthor(sBookId, sAuthorId) {
 }
 
 /* **************************************************
-*  updateAuthor()
+*  updateBookAuthor()
 *  @param sBookId
 *  @param oAuthor, author object with updates to first, last.
 *  @return Promise: oUpdatedAuthor, author that was updated
@@ -213,9 +212,9 @@ function readAuthor(sBookId, sAuthorId) {
 *                Error("book not found")
 *                Error("author not found")
 ***************************************************** */
-function updateAuthor(sBookId, oUpdateAuthor) {
+function updateBookAuthor(sBookId, oupdateBookAuthor) {
   let aBooks = [];
-  // const oUpdateAuthor = _oUpdateAuthor;
+  // const oupdateBookAuthor = _oupdateBookAuthor;
   return loadDb()
     .then((_aBooks) => {
       aBooks = _aBooks;
@@ -224,19 +223,19 @@ function updateAuthor(sBookId, oUpdateAuthor) {
         console.log("internal error: book not found");
         throw new Error(`book not found: ${sBookId}`);
       }
-      const idxFndAuthor = oFndBook.authors.findIndex(oAuthor => oAuthor.id === oUpdateAuthor.id);
+      const idxFndAuthor = oFndBook.authors.findIndex(oAuthor => oAuthor.id === oupdateBookAuthor.id);
       if (idxFndAuthor === -1) {
         console.log("internal error: author not found");
-        throw new Error(`author not found: ${oUpdateAuthor.id}`);
+        throw new Error(`author not found: ${oupdateBookAuthor.id}`);
       }
-      oFndBook.authors[idxFndAuthor] = oUpdateAuthor;
+      oFndBook.authors[idxFndAuthor] = oupdateBookAuthor;
     })
     .then(() => saveDb(aBooks))
-    .then(() => oUpdateAuthor);
+    .then(() => oupdateBookAuthor);
 }
 
 /* **************************************************
-*  deleteAuthor()
+*  deleteBookAuthor()
 *  @param sBookId
 *  @param sAuthorId
 *  @return Promise: deleted oAuthor
@@ -244,7 +243,7 @@ function updateAuthor(sBookId, oUpdateAuthor) {
 *                Error("book not found")
 *                Error("author not found")
 ***************************************************** */
-function deleteAuthor(sBookId, sAuthorId) {
+function deleteBookAuthor(sBookId, sAuthorId) {
   let aBooks = [];
   let oDeletedAuthor = {};
   return loadDb()
@@ -267,27 +266,37 @@ function deleteAuthor(sBookId, sAuthorId) {
     .then(() => oDeletedAuthor);
 }
 
+module.exports = {
+  createBook,
+  readBook,
+  updateBook,
+  deleteBook,
+  createBookAuthor,
+  readBookAuthor,
+  updateBookAuthor,
+  deleteBookAuthor,
+};
 
+/* ========= TEST CODE ========== */
 
-// createAuthor('91eabf57-f817-42ca-914b-5517120acde6', 'Ed', 'Phelps')
+// createBookAuthor('91eabf57-f817-42ca-914b-5517120acde6', 'Ed', 'Phelps')
 //   .then(author => console.log(author));
 
-// readAuthor('91eabf57-f817-42ca-914b-5517120acde6')
+// readBookAuthor('91eabf57-f817-42ca-914b-5517120acde6')
 //   .then(authors => console.log(authors));
 
-// readAuthor('91eabf57-f817-42ca-914b-5517120acde6', '506f4103-3447-4ac5-9a93-bed9db6bd315')
+// readBookAuthor('91eabf57-f817-42ca-914b-5517120acde6', '506f4103-3447-4ac5-9a93-bed9db6bd315')
 //   .then(author => console.log(author));
 
-// updateAuthor('91eabf57-f817-42ca-914b-5517120acde6', {
+// updateBookAuthor('91eabf57-f817-42ca-914b-5517120acde6', {
 //   id: '506f4103-3447-4ac5-9a93-bed9db6bd315',
 //   first: 'Wendy',
 //   last: 'Dubow',
 // })
 // .then(author => console.log(author));
 
-// deleteAuthor('91eabf57-f817-42ca-914b-5517120acde6', '506f4103-3447-4ac5-9a93-bed9db6bd315')
+// deleteBookAuthor('91eabf57-f817-42ca-914b-5517120acde6', '506f4103-3447-4ac5-9a93-bed9db6bd315')
 //   .then(author => console.log(author));
-
 
 
 // createBook('Bible', 'The definitive guide to life.')
@@ -302,13 +311,13 @@ function deleteAuthor(sBookId, sAuthorId) {
 //     console.log("catch(): failed to insert book: ", error);
 //   });
 
-readBook()
-  .then((aBooks) => {
-    console.log("Found books: ", aBooks);
-  })
-  .catch((error) => {
-    console.log("catch(): can't find books: ", error);
-  });
+// readBook()
+//   .then((aBooks) => {
+//     console.log("Found books: ", aBooks);
+//   })
+//   .catch((error) => {
+//     console.log("catch(): can't find books: ", error);
+//   });
 
 // readBook('91eabf57-f817-42ca-914b-5517120acde7')
 //   .then((oBook) => {

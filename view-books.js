@@ -1,128 +1,137 @@
 const express = require('express');
-
 const router = express.Router();
+const model = require('./model.js');
 
-// ===========================================================
-// GET /series
-// Get all series
-// ===========================================================
-router.get('', (req, res, next) => {
-  console.log("~~ GET /series");
-  res.json(db.series);
-});
 
-// ===========================================================
-// POST /series name=new_name
-// Add a series
-// ===========================================================
+// /* **************************************************
+// *  formatError()
+// *  @param Error, actual Error object
+// *  @return, string with the stack string split from message.
+// *           Or entire stack string if ' at ' not found.
+// ***************************************************** */
+// function formatError(error) {
+//   const i = error.stack.search(' at ');
+//   if (i === -1)
+//     return error.stack;
+//   const stack = error.stack.slice(i + 4);
+//   return `${error.message} [${stack}]`
+// }
+//
+// /* **************************************************
+// *  restructureError()
+// *  @param Error -- actual Error object
+// *  Returns object { message: 'xxxx', stack: 'xxx' }
+// ***************************************************** */
+// function restructureError(error) {
+//   const i = error.stack.search(' at ');
+//   if (i === -1)
+//     return { message: error.message, stack: 'undetermines' };
+//   return { error: { message: error.message, stack: error.stack.slice(i + 4) } };
+// }
+
+/* **************************************************
+*  POST /books
+*  @body title
+*  @body desc
+*  Add a new book or error
+http POST localhost:3000/books title='Bible' desc='The only book you need!'
+***************************************************** */
 router.post('', (req, res, next) => {
-  console.log("~~ POST /series name=new_name");
-
-  // get name
-  const sName = req.body.name;
-  if (!sName) {
-    res.status(400).json({ error: { message: 'must pass a name' } });
+  const { title, desc } = req.body;
+  if (!title || !desc) {
+    res.status(400).json({ error: { message: 'must pass title and desc' } });
     return;
   }
 
-  // check that name is unique
-  if (db.series.find(testSeries => testSeries.name === sName)) {
-    res.status(400).json({ error: { message: 'name already in db' } });
-    return;
-  }
-
-  // create new series
-  const newSeries = {
-    id: uuid(),
-    name: sName,
-  };
-
-  // add new series to db
-  db.series.push(newSeries);
-
-  // respond to caller
-  res.status(201).json(newSeries);
+  model.createBook(title, desc)
+    .then((newBook) => {
+      res.status(201).json(newBook);
+    })
+    .catch((error) => {
+      error.status = 400;
+      next(error);
+    });
 });
 
-// ===========================================================
-// GET /series/:id
-// Get a series
-// ===========================================================
+/* **************************************************
+*  GET /books
+*  Return array of all books
+http GET localhost:3000/books
+***************************************************** */
+router.get('', (req, res, next) => {
+  model.readBook()
+    .then((aBooks) => {
+      res.status(200).json(aBooks);
+    })
+    .catch((error) => {
+      error.status = 400;
+      next(error);
+    });
+});
+
+/* **************************************************
+*  GET /books/:id
+*  Return the book
+http GET localhost:3000/books/91eabf57-f817-42ca-914b-5517120acde6
+***************************************************** */
 router.get('/:id', (req, res, next) => {
-  console.log("~~ GET /series/:id");
-  rteHelper.respondRecord(db.series, req.params.id, res);
-  // const series = db.series.find(testSeries => testSeries.id === req.params.id);
-  // if (!series) {
-  //   res.status(404).json({ error: { message: 'unk series' } });
-  //   return;
-  // }
-  // res.json(series);
+  model.readBook(req.params.id)
+    .then((oBook) => {
+      res.status(200).json(oBook);
+    })
+    .catch((error) => {
+      error.status = 404;
+      next(error);
+    });
 });
 
-// ===========================================================
-// PUT /series/:id name=new_name
-// Update a series with a new name
-// ===========================================================
+/* **************************************************
+*  PUT /books/:id
+*  Update the book
+*  @body title
+*  @body borrowed
+*  @body desc
+*  Return, the updated book record
+http PUT localhost:3000/books/123... title='new title' borrowed=true desc='new desc'
+***************************************************** */
 router.put('/:id', (req, res, next) => {
-  console.log("~~ PUT /series/:id name=new_name");
-  console.log("~~~~ id=", req.params.id);
-  console.log("~~~~ name=", req.body.name);
-
-  // find the series to update
-  const oSeriesToUpdate = db.series.find(series => series.id === req.params.id);
-
-  // check that series was found
-  if (!oSeriesToUpdate) {
-    res.status(404).json({ error: { message: 'series id not found' } });
+  const { title, borrowed, desc } = req.body;
+  if (!title || !desc || typeof borrowed === 'undefined') {
+    res.status(400).json({ error: { message: 'must pass title, borrowed, and desc' } });
     return;
   }
-
-  // get new name param
-  if (!req.body.name) {
-    res.status(400).json({ error: { message: 'must pass a name' } });
-    return;
-  }
-
-  // check that no other series has the same name
-  // (not in requirements but should have been)
-  if (db.series.find(series => series.name === req.body.name && series.id !== req.params.id)) {
-    res.status(400).json({ error: { message: 'name already in db' } });
-    return;
-  }
-
-  console.log("~~~~~~ found: ", oSeriesToUpdate);
-
-  // change the series data
-  oSeriesToUpdate.name = req.body.name;
-
-  // respond to caller
-  res.status(200).json(oSeriesToUpdate);
+  const oBook = {
+    id: req.params.id,
+    title,
+    borrowed,
+    desc,
+    // authors must be updated individually through \books\:id\authors api
+  };
+  model.updateBook(oBook)
+    .then((updatedBook) => {
+      res.status(201).json(updatedBook);
+    })
+    .catch((error) => {
+      error.status = 400;
+      next(error);
+    });
 });
 
-// ===========================================================
-// DELETE /series/:id
-// Delete a series
-// ===========================================================
+/* **************************************************
+*  DELETE /books/:id
+*  Delete the book
+*  Return, the deleted record
+http DELETE localhost:3000/books/63551063-2f9c-48a4-9eda-5fa44ea8d1bf
+***************************************************** */
 router.delete('/:id', (req, res, next) => {
-  console.log("~~ DELETE /series/:id");
-  console.log("~~~~ id=", req.params.id);
-
-  rteHelper.respondDelete(db.series, req.params.id, res);
-
-  // // find the index of series to delete
-  // const idxSeriesToDelete = db.series.findIndex(series => series.id === req.params.id);
-  //
-  // // check that series was found
-  // if (idxSeriesToDelete < 0) {
-  //   res.status(404).json({ error: { message: 'series id not found' } });
-  //   return;
-  // }
-  //
-  // // remove item from db
-  // const deletedSeries = db.series.splice(idxSeriesToDelete, 1);
-  //
-  // // respond to caller
-  // res.status(200).json(deletedSeries);
+  model.deleteBook(req.params.id)
+    .then((oBook) => {
+      res.status(200).json(oBook);
+    })
+    .catch((error) => {
+      error.status = 404;
+      next(error);
+    });
 });
 
 // ===========================================================

@@ -9,30 +9,51 @@ const morgan = require('morgan');
 
 const viewBooks = require('./view-books');
 
+// setup middleware
 app.use(morgan('dev'));
 app.use(bodyParser.json());
 
+// routes for /books
 app.use('/books', viewBooks);
-// app.use('/characters', rteCharacters);
 
 // ===========================================================
-// ROLL MY OWN 404
+// 404
 // ===========================================================
 app.use((req, res, next) => {
-  console.log("=========== PAGE NOT FOUND ==========");
+  console.log("=========== 404 ==========");
   res.status(404).json({ message: "Page not found" });
   next();
 });
 
+/* **************************************************
+*  restructureError()
+*  @param Error -- actual Error object
+*  Returns object { message: 'xxxx', stack: 'xxx' }
+***************************************************** */
+function restructureError(error) {
+  const i = error.stack.search(' at ');
+  if (i === -1)
+    return { message: error.message, stack: 'undetermined', status: error.status };
+  const restructured = {
+    error: {
+      message: error.message,
+      stack: error.stack.slice(i + 4),
+    },
+  };
+  if (error.status)
+    restructured.error.status = error.status;
+  return restructured;
+}
+
 // ===========================================================
-// ROLL MY OWN 500
+// Error handler for next(object) / 500
 // ===========================================================
 app.use((err, req, res, next) => {
   const status = err.status || 500;
   console.log("=========== APP ERROR ==========");
   console.log(err);
   console.log("^^^^^^^^^^^ APP ERROR ^^^^^^^^^");
-  res.status(status).json({ error: err });
+  res.status(status).json(restructureError(err));
   next();
 });
 
