@@ -31,10 +31,21 @@
     ]
   },
   {
-    "id": "7e63a2f5-107e-4fd6-95ee-0ca4a6b0c1c4",
-    "title": "Bible",
-    "borrowed": false,
-    "desc": "The definitive guide to life.",
-    "authors": []
+    "id": "91eabf57-f817-42ca-914b-5517120acde3",
+    "title": "updated",
+    "borrowed": "true",
+    "decr": "new desc",
+    "authors": [
+      {
+        "id": "91eabf57-f817-42ca-914b-5517120acde4",
+        "first": "Viktor",
+        "last": "Mayer-Schöberger"
+      },
+      {
+        "id": "91eabf57-f817-42ca-914b-5517120acde5",
+        "first": "Kenneth",
+        "last": "Cukier"
+      }
+    ]
   }
 ]
