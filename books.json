@@ -1,12 +1,5 @@
 [
   {
-    "id": "c57659fd-be9b-41b0-acb3-41a913e14d74",
-    "title": "new title",
-    "borrowed": "true",
-    "desc": "true",
-    "authors": []
-  },
-  {
     "id": "91eabf57-f817-42ca-914b-5517120acde6",
     "title": "The Bell Jar",
     "borrowed": true,

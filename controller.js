@@ -8,12 +8,13 @@ const bodyParser = require('body-parser');
 const morgan = require('morgan');
 
 const viewBooks = require('./view-books');
+// const viewBookAuthors = require('./view-book-authors');
 
 // setup middleware
 app.use(morgan('dev'));
 app.use(bodyParser.json());
 
-// routes for /books
+// routes
 app.use('/books', viewBooks);
 
 // ===========================================================
@@ -37,7 +38,7 @@ function restructureError(error) {
   const i = error.stack.search(' at ');
   if (i === -1)
     return { message: error.message, stack: 'undetermined', status: error.status };
-    
+
   const restructured = {
     error: {
       message: error.message,
